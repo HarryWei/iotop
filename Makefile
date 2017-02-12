@@ -6,11 +6,11 @@ LDFLAGS=-lncurses
 
 PREFIX=/usr
 
-$(LIB): $(OBJS)
-	$(CC) -shared -o $@ $^
-
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
+
+$(LIB): $(OBJS)
+	$(CC) -shared -o $@ $^
 
 %.o: src/%.c
 	$(CC) -c $(CFLAGS) -o $@ $<

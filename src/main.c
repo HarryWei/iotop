@@ -185,6 +185,32 @@ int get_taskstats(int pid, struct xxxid_stats *cs) {
 	return 0;
 }
 
+void dump_stats(struct xxxid_stats *cs) {
+	printf("Read_bytes is %lu\n", cs->read_bytes);
+	printf("Write_bytes is %lu\n", cs->write_bytes);
+	printf("Swapin_delay_total is %lu\n", cs->swapin_delay_total);
+	printf("Blkio_delay_total is %lu\n", cs->blkio_delay_total);
+	printf("User space time is %lu\n", cs->ac_utime);
+	printf("Kernel space time is %lu\n", cs->ac_stime);
+	printf("========================================\n");
+}
+
+void cal_io_percent(struct xxxid_stats *prev, struct xxxid_stats *cs, int window) {
+	uint64_t xxx = ~0;
+
+#define RRV(to, from) {\
+	to = (to < from)\
+	? xxx - to + from\
+	: to - from;\
+}
+	RRV(cs->blkio_delay_total, prev->blkio_delay_total);
+#undef RRV
+	static double pow_ten = 0;
+	if (!pow_ten) pow_ten = pow(10, 3);
+
+	cs->blkio_val = ((double) cs->blkio_delay_total / pow_ten / (double) window) * 100.0;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -192,20 +218,27 @@ main(int argc, char *argv[])
     //check_priv();
 
     struct xxxid_stats cs;
+    struct xxxid_stats prev;
 	int pid = 0;
+	int window = 1000000;				// microseconds
 
 	char *eol = NULL;
 	pid = strtol(argv[1], &eol, 10);
 	printf("argv[1] is %s\n", argv[1]);
+
+	while (1) {
+	get_taskstats(pid, &prev);
+	usleep(window);
 	get_taskstats(pid, &cs);
-	printf("Read_bytes is %lu\n", cs.read_bytes);
-	printf("Write_bytes is %lu\n", cs.write_bytes);
-	printf("Swapin_delay_total is %lu\n", cs.swapin_delay_total);
-	printf("Blkio_delay_total is %lu\n", cs.blkio_delay_total);
-	printf("User space time is %lu\n", cs.ac_utime);
-	printf("Kernel space time is %lu\n", cs.ac_stime);
 
+	cal_io_percent(&prev, &cs, window);
 
+	//if (cs.blkio_val > 0) {
+		printf("I/O percentage is %lf\n", cs.blkio_val);
+	//	dump_stats(&prev);
+	//	dump_stats(&cs);
+	//}
+	}
 	//dump_xxxid_stats(cs);
 
 	//free(cs);

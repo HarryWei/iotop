@@ -38,6 +38,7 @@ extern params_t params;
 
 struct xxxid_stats
 {
+	/* Some fields copy from kernel/include/uapi/linux/taskstats.h */
     pid_t tid;
     uint64_t swapin_delay_total;  // nanoseconds
     uint64_t blkio_delay_total;  // nanoseconds
