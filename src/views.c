@@ -79,7 +79,7 @@ struct xxxid_stats *create_diff(struct xxxid_stats *cs, struct xxxid_stats *ps, 
 
         static double pow_ten = 0;
         if (!pow_ten)
-            pow_ten = pow(10, 9);
+            pow_ten = pow(10, 6);
 
 #undef RRV
 
@@ -427,8 +427,10 @@ int curses_sleep(unsigned int seconds)
     FD_ZERO(&fds);
     FD_SET(fileno(stdin), &fds);
 
-    tv.tv_sec = seconds;
-    tv.tv_usec = 0;
+//    tv.tv_sec = seconds;
+//    tv.tv_usec = 0;
+    tv.tv_sec = 0;
+    tv.tv_usec = seconds * 1000;
 
     int rv = select(1, &fds, NULL, NULL, &tv);
 

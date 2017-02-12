@@ -195,6 +195,8 @@ int nl_xxxid_info(pid_t xxxid, int isp, struct xxxid_stats *stats)
                     COPY(write_bytes);
                     COPY(swapin_delay_total);
                     COPY(blkio_delay_total);
+                    COPY(ac_utime);
+                    COPY(ac_stime);
 #undef COPY
                     stats->euid = ts->ac_uid;
                 }
@@ -247,11 +249,33 @@ void free_stats_chain(struct xxxid_stats *chain)
     }
 }
 
+int do_make_stats(int pid, struct xxxid_stats *cs)
+{
+	int processes = 1;
+	struct xxxid_stats *s = cs;
+    memset(s, 0, sizeof(struct xxxid_stats));
+
+	//dump_xxxid_stats(s);
+    if (nl_xxxid_info(pid, processes, s))
+        goto error;
+
+    const static char unknown[] = "<unknown>";
+    const char *cmdline = read_cmdline2(pid);
+
+    s->cmdline = strdup(cmdline ? cmdline : unknown);
+
+    return 0;
+
+error:
+    return -1;
+}
+
 struct xxxid_stats *make_stats(int pid, int processes)
 {
     struct xxxid_stats *s = malloc(sizeof(struct xxxid_stats));
     memset(s, 0, sizeof(struct xxxid_stats));
 
+	//dump_xxxid_stats(s);
     if (nl_xxxid_info(pid, processes, s))
         goto error;
 

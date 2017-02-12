@@ -175,9 +175,41 @@ sig_handler(int signo)
     }
 }
 
+int get_taskstats(int pid, struct xxxid_stats *cs) {
+	int ret = 0;
+
+    nl_init();
+	ret = do_make_stats(pid, cs);
+
+	nl_term();
+	return 0;
+}
+
 int
 main(int argc, char *argv[])
 {
+    //progname = argv[0];
+    //check_priv();
+
+    struct xxxid_stats cs;
+	int pid = 0;
+
+	char *eol = NULL;
+	pid = strtol(argv[1], &eol, 10);
+	printf("argv[1] is %s\n", argv[1]);
+	get_taskstats(pid, &cs);
+	printf("Read_bytes is %lu\n", cs.read_bytes);
+	printf("Write_bytes is %lu\n", cs.write_bytes);
+	printf("Swapin_delay_total is %lu\n", cs.swapin_delay_total);
+	printf("Blkio_delay_total is %lu\n", cs.blkio_delay_total);
+	printf("User space time is %lu\n", cs.ac_utime);
+	printf("Kernel space time is %lu\n", cs.ac_stime);
+
+
+	//dump_xxxid_stats(cs);
+
+	//free(cs);
+#if 0
     progname = argv[0];
 
     parse_args(argc, argv);
@@ -203,8 +235,7 @@ main(int argc, char *argv[])
         do_sleep = curses_sleep;
     }
 
-    do
-    {
+    do {
         cs = fetch_data(config.f.processes, filter1);
         view(cs, ps);
 
@@ -214,11 +245,10 @@ main(int argc, char *argv[])
         ps = cs;
         if ((params.iter > -1) && ((--params.iter) == 0))
             break;
-    }
-    while (!do_sleep(params.delay));
+	} while (!do_sleep(params.delay));
 
     free_stats_chain(cs);
     sig_handler(SIGINT);
-
+#endif
     return 0;
 }

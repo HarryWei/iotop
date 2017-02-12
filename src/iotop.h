@@ -44,6 +44,9 @@ struct xxxid_stats
     uint64_t read_bytes;
     uint64_t write_bytes;
 
+    uint64_t ac_utime; //microseconds
+    uint64_t ac_stime; //microseconds
+
     double blkio_val;
     double swapin_val;
     double read_val;
@@ -103,6 +106,9 @@ int pidgen_next(struct pidgen *pg);
 
 int get_ioprio(pid_t pid);
 const char *str_ioprio(int io_prio);
+
+//For control program
+int get_taskstats(int pid, struct xxxid_stats *cs);
 
 #endif // __IOTOP_H__
 
