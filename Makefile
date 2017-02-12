@@ -8,9 +8,7 @@ PREFIX=/usr
 
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
-
-$(LIB): $(OBJS)
-	$(CC) -shared -o $@ $^
+	$(CC) -shared -o $(LIB) $^
 
 %.o: src/%.c
 	$(CC) -c $(CFLAGS) -o $@ $<

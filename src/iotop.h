@@ -110,6 +110,7 @@ const char *str_ioprio(int io_prio);
 
 //For control program
 int get_taskstats(int pid, struct xxxid_stats *cs);
+void cal_io_percent(struct xxxid_stats *prev, struct xxxid_stats *cs, int window);
 
 #endif // __IOTOP_H__
 
