@@ -31,8 +31,8 @@ struct msgtemplate
     char buf[MAX_MSG_SIZE];
 };
 
-static int nl_sock = -1;
-static int nl_fam_id = 0;
+//static int nl_sock = -1;
+//static int nl_fam_id = 0;
 
 int send_cmd(int sock_fd, __u16 nlmsg_type, __u32 nlmsg_pid,
              __u8 genl_cmd, __u16 nla_type,
@@ -114,8 +114,12 @@ int get_family_id(int sock_fd)
     return id;
 }
 
-void nl_init(void)
+void nl_init(struct xxxid_stats *cs)
 {
+	if (cs == NULL) {
+		perror("nl_init\n");
+		exit(EXIT_FAILURE);
+	}
     struct sockaddr_nl addr;
     int sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
 
@@ -128,8 +132,8 @@ void nl_init(void)
     if (bind(sock_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
         goto error;
 
-    nl_sock = sock_fd;
-    nl_fam_id = get_family_id(sock_fd);
+    cs->nl_sock = sock_fd;
+    cs->nl_fam_id = get_family_id(sock_fd);
 
     return;
 
@@ -143,13 +147,13 @@ error:
 
 int nl_xxxid_info(pid_t xxxid, int isp, struct xxxid_stats *stats)
 {
-    if (nl_sock < 0)
+    if (stats->nl_sock < 0)
     {
         perror("nl_xxxid_info");
         exit(EXIT_FAILURE);
     }
 
-    if (send_cmd(nl_sock, nl_fam_id, xxxid, TASKSTATS_CMD_GET,
+    if (send_cmd(stats->nl_sock, stats->nl_fam_id, xxxid, TASKSTATS_CMD_GET,
                  TASKSTATS_CMD_ATTR_PID, &xxxid, sizeof(pid_t)))
     {
         fprintf(stderr, "get_xxxid_info: %s\n", strerror(errno));
@@ -159,7 +163,7 @@ int nl_xxxid_info(pid_t xxxid, int isp, struct xxxid_stats *stats)
     stats->tid = xxxid;
 
     struct msgtemplate msg;
-    int rv = recv(nl_sock, &msg, sizeof(msg), 0);
+    int rv = recv(stats->nl_sock, &msg, sizeof(msg), 0);
 
     if (msg.n.nlmsg_type == NLMSG_ERROR ||
             !NLMSG_OK((&msg.n), rv))
@@ -212,10 +216,10 @@ int nl_xxxid_info(pid_t xxxid, int isp, struct xxxid_stats *stats)
     return 0;
 }
 
-void nl_term(void)
+void nl_term(struct xxxid_stats *cs)
 {
-    if (nl_sock > -1)
-        close(nl_sock);
+    if (cs->nl_sock > -1)
+        close(cs->nl_sock);
 }
 
 void dump_xxxid_stats(struct xxxid_stats *stats)

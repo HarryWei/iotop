@@ -40,6 +40,8 @@ struct xxxid_stats
 {
 	/* Some fields copy from kernel/include/uapi/linux/taskstats.h */
     pid_t tid;
+	int nl_sock;
+	int nl_fam_id;
     uint64_t swapin_delay_total;  // nanoseconds
     uint64_t blkio_delay_total;  // nanoseconds
     uint64_t read_bytes;
@@ -61,8 +63,8 @@ struct xxxid_stats
     void *__next;
 };
 
-void nl_init(void);
-void nl_term(void);
+void nl_init(struct xxxid_stats *cs);
+void nl_term(struct xxxid_stats *cs);
 
 int nl_xxxid_info(pid_t xxxid, int isp, struct xxxid_stats *stats);
 void dump_xxxid_stats(struct xxxid_stats *stats);

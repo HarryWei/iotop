@@ -162,6 +162,7 @@ filter1(struct xxxid_stats *s)
     return 0;
 }
 
+#if 0
 void
 sig_handler(int signo)
 {
@@ -174,14 +175,15 @@ sig_handler(int signo)
         exit(EXIT_SUCCESS);
     }
 }
+#endif
 
 int get_taskstats(int pid, struct xxxid_stats *cs) {
 	int ret = 0;
 
-    nl_init();
+    //nl_init();
 	ret = do_make_stats(pid, cs);
 
-	nl_term();
+	//nl_term();
 	return 0;
 }
 
