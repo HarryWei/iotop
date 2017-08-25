@@ -156,7 +156,7 @@ int nl_xxxid_info(pid_t xxxid, int isp, struct xxxid_stats *stats)
     }
 
     if (send_cmd(stats->nl_sock, stats->nl_fam_id, xxxid, TASKSTATS_CMD_GET,
-                 TASKSTATS_CMD_ATTR_PID, &xxxid, sizeof(pid_t)))
+                 stats->cmd_type, &xxxid, sizeof(pid_t)))
     {
         fprintf(stderr, "get_xxxid_info: %s\n", strerror(errno));
         return -1;

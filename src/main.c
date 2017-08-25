@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <linux/taskstats.h>
 
 static char *progname = NULL;
 
@@ -213,6 +214,11 @@ void cal_io_percent(struct xxxid_stats *prev, struct xxxid_stats *cs, int window
 	cs->blkio_val = ((double) cs->blkio_delay_total / pow_ten / (double) window) * 100.0;
 }
 
+void usage(void) {
+	fprintf(stderr, "Usage: sudo ./iotop [-p pid] [-t tgid]\n");
+	return;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -221,21 +227,46 @@ main(int argc, char *argv[])
 
     struct xxxid_stats cs;
     struct xxxid_stats prev;
-	int pid = 0;
+	int tid = 0;
+	int forking = 0;
 	int window = 1000000;				// microseconds
+	int ret = 0;
 
-	if (argc != 2) {
-		fprintf(stderr, "Usage: sudo ./iotop pid\n");
-		return -1;
+	while (!forking) {
+	ret = getopt(argc, argv, "h:p:t:");
+	if (ret < 0) break;
+	switch (ret) {
+		case 'h':
+			usage();
+			exit(EXIT_SUCCESS);
+		case 'p':
+			printf("optarg is %s\n", optarg);
+			tid = atoi(optarg);
+			printf("pid is %d\n", tid);
+			if (!tid) printf("Invalid pid!\n");
+			cs.cmd_type = TASKSTATS_CMD_ATTR_PID;
+			prev.cmd_type = TASKSTATS_CMD_ATTR_PID;
+			break;
+		case 't':
+			tid = atoi(optarg);
+			printf("tid is %d\n", tid);
+			if (!tid) printf("Invalid tid!\n");
+			cs.cmd_type = TASKSTATS_CMD_ATTR_TGID;
+			prev.cmd_type = TASKSTATS_CMD_ATTR_TGID;
+			break;
+		default:
+			usage();
+			exit(EXIT_FAILURE);
 	}
-	char *eol = NULL;
-	pid = strtol(argv[1], &eol, 10);
-	printf("pid is %s\n", argv[1]);
+	}
+	//char *eol = NULL;
+	//pid = strtol(argv[1], &eol, 10);
+	//printf("tid is %d\n", tid);
 
 	while (1) {
-		get_taskstats(pid, &prev);
+		get_taskstats(tid, &prev);
 		usleep(window);
-		get_taskstats(pid, &cs);
+		get_taskstats(tid, &cs);
 
 		cal_io_percent(&prev, &cs, window);
 

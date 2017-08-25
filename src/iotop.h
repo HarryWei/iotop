@@ -59,6 +59,7 @@ struct xxxid_stats
 
     int euid;
     char *cmdline;
+	int cmd_type;
 
     void *__next;
 };
