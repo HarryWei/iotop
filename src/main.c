@@ -180,10 +180,10 @@ sig_handler(int signo)
 int get_taskstats(int pid, struct xxxid_stats *cs) {
 	int ret = 0;
 
-    //nl_init();
+    nl_init(cs);
 	ret = do_make_stats(pid, cs);
 
-	//nl_term();
+	nl_term(cs);
 	return 0;
 }
 
@@ -224,16 +224,20 @@ main(int argc, char *argv[])
 	int pid = 0;
 	int window = 1000000;				// microseconds
 
+	if (argc != 2) {
+		fprintf(stderr, "Usage: sudo ./iotop pid\n");
+		return -1;
+	}
 	char *eol = NULL;
 	pid = strtol(argv[1], &eol, 10);
-	printf("argv[1] is %s\n", argv[1]);
+	printf("pid is %s\n", argv[1]);
 
 	while (1) {
-	get_taskstats(pid, &prev);
-	usleep(window);
-	get_taskstats(pid, &cs);
+		get_taskstats(pid, &prev);
+		usleep(window);
+		get_taskstats(pid, &cs);
 
-	cal_io_percent(&prev, &cs, window);
+		cal_io_percent(&prev, &cs, window);
 
 	//if (cs.blkio_val > 0) {
 		printf("I/O percentage is %lf\n", cs.blkio_val);

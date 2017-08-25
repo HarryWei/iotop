@@ -66,16 +66,16 @@ int send_cmd(int sock_fd, __u16 nlmsg_type, __u32 nlmsg_pid,
     buflen = msg.n.nlmsg_len ;
     memset(&nladdr, 0, sizeof(nladdr));
     nladdr.nl_family = AF_NETLINK;
+	//printf("sock_fd is %d\n", sock_fd);
     while ((r = sendto(sock_fd, buf, buflen, 0, (struct sockaddr *) &nladdr,
-                       sizeof(nladdr))) < buflen)
-    {
-        if (r > 0)
-        {
+                       sizeof(nladdr))) < buflen) {
+        if (r > 0) {
             buf += r;
             buflen -= r;
-        }
-        else if (errno != EAGAIN)
+        } else if (errno != EAGAIN) {
+			fprintf(stderr, "sendto error: %s\n", strerror(errno));
             return -1;
+		}
     }
     return 0;
 }
@@ -123,6 +123,7 @@ void nl_init(struct xxxid_stats *cs)
     struct sockaddr_nl addr;
     int sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
 
+	//printf("nlinit: sock fd is %d\n", sock_fd);
     if (sock_fd < 0)
         goto error;
 
@@ -133,6 +134,7 @@ void nl_init(struct xxxid_stats *cs)
         goto error;
 
     cs->nl_sock = sock_fd;
+	//printf("nlinit: cs->nl_sock is %d\n", cs->nl_sock);
     cs->nl_fam_id = get_family_id(sock_fd);
 
     return;
@@ -164,10 +166,8 @@ int nl_xxxid_info(pid_t xxxid, int isp, struct xxxid_stats *stats)
 
     struct msgtemplate msg;
     int rv = recv(stats->nl_sock, &msg, sizeof(msg), 0);
-
-    if (msg.n.nlmsg_type == NLMSG_ERROR ||
-            !NLMSG_OK((&msg.n), rv))
-    {
+	//printf("receive %d bytes\n", rv);
+    if (msg.n.nlmsg_type == NLMSG_ERROR || !NLMSG_OK((&msg.n), rv)) {
         struct nlmsgerr *err = NLMSG_DATA(&msg);
         fprintf(stderr, "fatal reply error, %d\n", err->error);
         return -1;
@@ -257,8 +257,8 @@ int do_make_stats(int pid, struct xxxid_stats *cs)
 {
 	int processes = 1;
 	struct xxxid_stats *s = cs;
-    memset(s, 0, sizeof(struct xxxid_stats));
 
+	//printf("do_make_stats is %d\n", s->nl_sock);
 	//dump_xxxid_stats(s);
     if (nl_xxxid_info(pid, processes, s))
         goto error;
