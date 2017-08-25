@@ -201,6 +201,8 @@ void dump_stats(struct xxxid_stats *cs) {
 void cal_io_percent(struct xxxid_stats *prev, struct xxxid_stats *cs, int window) {
 	uint64_t xxx = ~0;
 
+//	printf("cs Blkio_delay_total is %lu\n", cs->blkio_delay_total);
+//	printf("prev Blkio_delay_total is %lu\n", prev->blkio_delay_total);
 #define RRV(to, from) {\
 	to = (to < from)\
 	? xxx - to + from\
@@ -265,8 +267,10 @@ main(int argc, char *argv[])
 
 	while (1) {
 		get_taskstats(tid, &prev);
+		printf("prev Blkio_delay_total is %lu\n", prev.blkio_delay_total);
 		usleep(window);
 		get_taskstats(tid, &cs);
+		printf("cs Blkio_delay_total is %lu\n", cs.blkio_delay_total);
 
 		cal_io_percent(&prev, &cs, window);
 
